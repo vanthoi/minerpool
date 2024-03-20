@@ -1,0 +1,8 @@
+/myenv
+/job
+/Models
+.env
+http.txt
+__pycache__
+peers.json
+test.py
