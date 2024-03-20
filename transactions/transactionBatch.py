@@ -15,14 +15,6 @@ logging.basicConfig(
 )
 
 
-def mock_transaction_hash():
-    return str(uuid.uuid4())[:16]
-
-
-def generate_numeric_uuid():
-    return str(uuid.uuid4().int)[:12]
-
-
 async def sign_and_push_transactions(transactions):
     try:
         for transaction in transactions:

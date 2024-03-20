@@ -1,6 +1,6 @@
 # Upow MinerPool
 
-MinerPool serves as a crucial intermediary between inodes and individual miners within a distributed computing environment. Its primary function is to procure computational jobs from inodes and efficiently distribute them among participating miners. This enables miners to securely engage in training or processing these jobs, contributing to the network's overall computational power and integrity.
+MinerPool serves as a crucial intermediary between inodes and individual Ai-miners within a distributed computing environment. Its primary function is to procure computational Main-jobs from inodes and efficiently distribute sub-jobs among participating miners. This enables miners to securely engage in training or processing these jobs, contributing to the network's overall computational power and integrity.
 
 ## Configuration
 
@@ -16,7 +16,7 @@ Before diving into the MinerPool setup, it's essential to configure the system c
 
 - `IP`: The IP address on which this MinerPool server will run. Default is `127.0.0.1`.
 - `PORT`: The port on which this MinerPool server will listen. Default is `5501`.
-- `CHECK_INTERVAL`: The interval (in seconds) for checking new jobs. Default is `60`.
+- `CHECK_INTERVAL`: The interval (in seconds) for processing blocks. Default is `600`.
 - `MINERPOOL_WALLET_ADDRESS`: The wallet address for this MinerPool.
 - `MINERPOOL_REWARD_WALLET_ADDRESS`: The wallet address for distributing MinerPool Fee. (18%)
 - `INODE_VALIDATOR_LIST`: URL to fetch the list of validators from the inode server.
