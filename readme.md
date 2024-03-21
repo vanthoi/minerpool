@@ -54,7 +54,7 @@ To get started with MinerPool, ensure that Python 3.6+ is installed on your syst
    - Ensure MongoDB and Redis are running on your system.
    - Update the MongoDB connection URL and database details in `database/mongodb.py` if necessary.
 6. **Set Up Environment Variables:**
-   - Optionally, set up environment variables for configuration parameters.
+   - Set up environment variables for configuration parameters.
 7. **Run MinerPool**: Start the MinerPool server by running the main script. For example, `python minerPool.py`.
 8. **Connect with Validators**: Start by running `python connect.py`.
 
