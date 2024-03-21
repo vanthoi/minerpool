@@ -31,16 +31,32 @@ Before diving into the MinerPool setup, it's essential to configure the system c
 
 To get started with MinerPool, ensure that Python 3.6+ is installed on your system. Follow these steps:
 
-1. **Clone the Repository**: Clone this repository to your local machine or server.
-2. **Install Dependencies**: Install the required Python packages using `pip install -r requirements.txt`.
-3. **Configure Settings**: Adjust the settings in `config.py` as per your setup.
-4. **Configure MongoDB and Redis:**
+1. **Clone the Repository:**
+
+   ```bash
+   git clone https://github.com/upowai/minerpool.git
+   ```
+
+2. **Navigate to the Project Directory:**
+
+   ```bash
+   cd minerpool
+   ```
+
+3. **Install Dependencies:**
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Configure Settings**: Adjust the settings in `config.py` as per your setup.
+5. **Configure MongoDB and Redis:**
    - Ensure MongoDB and Redis are running on your system.
    - Update the MongoDB connection URL and database details in `database/mongodb.py` if necessary.
-5. **Set Up Environment Variables:**
+6. **Set Up Environment Variables:**
    - Optionally, set up environment variables for configuration parameters.
-6. **Run MinerPool**: Start the MinerPool server by running the main script. For example, `python minerPool.py`.
-7. **Connect with Validators**: Start by running `python connect.py`.
+7. **Run MinerPool**: Start the MinerPool server by running the main script. For example, `python minerPool.py`.
+8. **Connect with Validators**: Start by running `python connect.py`.
 
 ## API Endpoints
 
