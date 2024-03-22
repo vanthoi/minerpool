@@ -6,6 +6,7 @@ import torch.optim as optim
 import json
 from database.database import r
 import logging
+import redis
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s:%(levelname)s - %(message)s"
@@ -111,20 +112,39 @@ def check_model_record(model_name, validator_wallet):
 
 
 def create_model_record(model_name, percentage, validators):
+    key = "models"
     try:
-        key = "models"
-
         value = json.dumps(
             {"percentage": percentage, "last_active_time": 0, "validators": validators}
         )
-
-        r.hset(key, model_name, value)
-
-        logging.info(f"Model {model_name} record created successfully.")
-        return f"Model {model_name} record created successfully."
     except Exception as e:
-        logging.error(f"create_model_record An error occurred: {e}")
-        return f"An error occurred: {e}"
+        logging.error(f"Error serializing model record data for {model_name}: {e}")
+        return f"Error serializing model record data: {e}"
+
+    try:
+        # Ensure the Redis operation is executed
+        result = r.hset(key, model_name, value)
+        if result is not None:
+            logging.info(f"Model {model_name} record created/updated successfully.")
+            return f"Model {model_name} record created/updated successfully."
+        else:
+            # If result is None, it indicates an unexpected outcome from the hset operation
+            logging.error(
+                f"Failed to create/update model record for {model_name}. No exception, but the operation did not succeed."
+            )
+            return "Operation failed without an exception."
+    except redis.RedisError as e:
+        # Catching specific Redis errors
+        logging.error(
+            f"Redis error occurred while creating/updating model record for {model_name}: {e}"
+        )
+        return f"Redis error: {e}"
+    except Exception as e:
+        # Catching any other exceptions
+        logging.error(
+            f"An unexpected error occurred while creating/updating model record for {model_name}: {e}"
+        )
+        return f"An unexpected error occurred: {e}"
 
 
 def model_exe(job, job_folder_path):

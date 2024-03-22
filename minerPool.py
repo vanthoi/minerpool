@@ -224,7 +224,7 @@ async def handle_client(websocket, path):
                     current_time = datetime.utcnow()
                     if wallet_address in last_request_times:
                         last_request_time = last_request_times[wallet_address]
-                        if current_time - last_request_time < timedelta(seconds=260):
+                        if current_time - last_request_time < timedelta(seconds=20):
                             await websocket.send(
                                 "ERROR: Cooldown period not yet passed. Please wait."
                             )
