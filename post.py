@@ -3,14 +3,15 @@ import websockets
 import threading
 import json
 import time
-from database.database import r
 import logging
 import utils.config as config
 import requests
 from datetime import datetime, timedelta
 import sys
+import queue
 from core.model import update_model_record, check_model_record
 from api.api_client import test_api_connection
+from database.database import test_redis_connection
 
 
 class MessageType:
@@ -252,52 +253,84 @@ async def connect_to_server(uri, queue, wallet_address):
 
 
 def start_connection(uri, queue, wallet_address):
-    asyncio.new_event_loop().run_until_complete(
-        connect_to_server(uri, queue, wallet_address)
-    )
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
+    # Now, run the async connection function in this new event loop
+    loop.run_until_complete(connect_to_server(uri, queue, wallet_address))
+    loop.close()
+
+
+def fetch_peer_periodically(peers_queue, interval=20):
+    while True:
+        logging.info("Fetching peers...")
+        # vals = fetch_validators(config.INODE_VALIDATOR_LIST)
+        # save_valid_peers_to_json(vals)
+        peers = read_peers("peers.json")
+        print("peers", peers)
+        if peers:
+            peers_queue.put(peers)
+        time.sleep(interval)
 
 
 def main():
     try:
-        vals = fetch_validators(config.INODE_VALIDATOR_LIST)
-        save_valid_peers_to_json(vals)
-        peers = read_peers("peers.json")
         message_queue = asyncio.Queue()
+        peers_queue = queue.Queue()
+        active_connections = {}
+
+        peer_thread = threading.Thread(
+            target=fetch_peer_periodically, args=(peers_queue,), daemon=True
+        )
+        peer_thread.start()
 
         model_thread = threading.Thread(
-            target=model_processing_thread, daemon=True, args=(message_queue,)
+            target=model_processing_thread, args=(message_queue,), daemon=True
         )
         model_thread.start()
 
-        connection_threads = []
+        while True:
+            try:
+                try:
+                    new_peers = peers_queue.get(timeout=10)
+                except queue.Empty:
+                    continue
 
-        for wallet_address, uri in peers:
-            thread = threading.Thread(
-                target=start_connection,
-                daemon=True,
-                args=(uri, message_queue, wallet_address),
-            )
-            thread.start()
-            connection_threads.append(thread)
+                for wallet_address, uri in new_peers:
+                    if uri not in active_connections:
 
-        model_thread.join()
+                        thread = threading.Thread(
+                            target=start_connection,
+                            daemon=True,
+                            args=(uri, message_queue, wallet_address),
+                        )
+                        thread.start()
+                        active_connections[uri] = thread
+                        logging.info(f"Started new connection thread for {uri}")
 
-        for thread in connection_threads:
-            thread.join()
+            except KeyboardInterrupt:
+                logging.info("Shutting down...")
+                sys.exit(0)
 
-    except KeyboardInterrupt:
-        logging.info("Shutting down...")
-        sys.exit(0)
     except Exception as e:
         logging.error(f"An error occurred: {e}")
         sys.exit(1)
+
+    # finally:
+    #     peer_thread.join()
+    #     model_thread.join()
+    #     for thread in active_connections.values():
+    #         thread.join()
 
 
 if __name__ == "__main__":
     if not test_api_connection(config.INODE_VALIDATOR_LIST):
         logging.error("Failed to establish API connection. Exiting...")
-        sys.exit(3)
+        sys.exit(1)
+    if not test_redis_connection():
+        logging.error("Failed to establish Redis connection. Exiting...")
+        sys.exit(2)
     try:
-        main()
+        asyncio.new_event_loop().run_until_complete(main())
     except:
         logging.info("Shutting down Connect.py due to KeyboardInterrupt.")
