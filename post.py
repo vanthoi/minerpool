@@ -149,8 +149,8 @@ def fetch_validators(validators):
 def fetch_peer_periodically(interval=30):
     while True:
         logging.info("Fetching peers...")
-        # vals = fetch_validators(config.INODE_VALIDATOR_LIST)
-        # save_valid_peers_to_json(vals)
+        vals = fetch_validators(config.INODE_VALIDATOR_LIST)
+        save_valid_peers_to_json(vals)
         logging.info("SAVING NEW PEERS")
         time.sleep(interval)
 
