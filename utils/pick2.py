@@ -18,7 +18,7 @@ def pick_model_for_processing():
             model_info = json.loads(model_data)
 
             # Check if the model should be deleted
-            if float(model_info.get("percentage", 0)) >= 51:
+            if float(model_info.get("percentage", 0)) >= 91:
                 models_to_delete.append(model_name)
                 continue
 
