@@ -146,12 +146,12 @@ def fetch_validators(validators):
     return []
 
 
-def fetch_peer_periodically(interval=30):
+def fetch_peer_periodically(interval=600):
     while True:
-        logging.info("Fetching peers...")
+
         vals = fetch_validators(config.INODE_VALIDATOR_LIST)
         save_valid_peers_to_json(vals)
-        logging.info("SAVING NEW PEERS")
+
         time.sleep(interval)
 
 
@@ -176,9 +176,6 @@ async def main():
         try:
             if not test_api_connection(config.INODE_VALIDATOR_LIST):
                 logging.error("Failed to establish API connection. Exiting...")
-                break
-            if not test_redis_connection():
-                logging.error("Failed to establish Redis connection. Exiting...")
                 break
 
             model = pick_model_for_processing()
@@ -269,16 +266,19 @@ async def main():
                 if not temp_peers:
                     break
 
-            await asyncio.sleep(30)
+            await asyncio.sleep(120)
 
         except Exception as e:
             logging.error(f"An unexpected error occurred: {str(e)}")
-            await asyncio.sleep(60)
+            await asyncio.sleep(190)
 
 
 if __name__ == "__main__":
     balance_thread = threading.Thread(target=fetch_peer_periodically, daemon=True)
     balance_thread.start()
+    if not test_redis_connection():
+        logging.error("Failed to establish Redis connection. Exiting...")
+        sys.exit(0)
 
     try:
         asyncio.run(main())
