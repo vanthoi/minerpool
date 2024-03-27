@@ -44,6 +44,27 @@ from fastapi import FastAPI, HTTPException, Query, Request, Depends
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 
+minerpool_private_key = os.getenv("PRIVATEKEY")
+if minerpool_private_key is None:
+    print(
+        "Minerpool PRIVATEKEY not found. Please check readme.md to set the PRIVATEKEY in the .env variable."
+    )
+    exit(0)
+
+minerpool_wallet_address = os.getenv("MINERPOOLWALLETADDRESS")
+if minerpool_wallet_address is None:
+    print(
+        "Minerpool MINERPOOLWALLETADDRESS not found. Please check readme.md to set the MINERPOOLWALLETADDRESS in the .env variable."
+    )
+    exit(1)
+
+minerpool_reward_address = os.getenv("MINERPOOLREWARDWALLETADDRESS")
+if minerpool_reward_address is None:
+    print(
+        "Minerpool MINERPOOLREWARDWALLETADDRESS not found. Please check readme.md to set the MINERPOOLREWARDWALLETADDRESS in the .env variable."
+    )
+    exit(2)
+
 
 class MessageType:
     GRADIENT = "gradient"
@@ -65,28 +86,6 @@ app.add_middleware(
 
 def run_fastapi():
     uvicorn.run(app, host=config.FAST_API_URL, port=config.FAST_API_PORT)
-
-
-minerpool_private_key = os.getenv("PRIVATEKEY")
-if minerpool_private_key is None:
-    print(
-        "Minerpool PRIVATEKEY not found. Please check readme.md to set the PRIVATEKEY in the .env variable."
-    )
-    exit(0)
-
-minerpool_wallet_address = os.getenv("MINERPOOLWALLETADDRESS")
-if minerpool_wallet_address is None:
-    print(
-        "Minerpool MINERPOOLWALLETADDRESS not found. Please check readme.md to set the MINERPOOLWALLETADDRESS in the .env variable."
-    )
-    exit(1)
-
-minerpool_reward_address = os.getenv("MINERPOOLREWARDWALLETADDRESS")
-if minerpool_reward_address is None:
-    print(
-        "Minerpool MINERPOOLREWARDWALLETADDRESS not found. Please check readme.md to set the MINERPOOLREWARDWALLETADDRESS in the .env variable."
-    )
-    exit(2)
 
 
 last_request_times = {}
