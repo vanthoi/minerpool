@@ -176,7 +176,8 @@ async def main():
         try:
             if not test_api_connection(config.INODE_VALIDATOR_LIST):
                 logging.error("Failed to establish API connection. Exiting...")
-                break
+                await asyncio.sleep(30)
+                continue
 
             model = pick_model_for_processing()
             if not model:

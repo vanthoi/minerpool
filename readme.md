@@ -6,13 +6,43 @@ MinerPool serves as a crucial intermediary between inodes and individual Ai-mine
 
 Before diving into the MinerPool setup, it's essential to configure the system correctly. The `config.py` file contains several critical settings that need to be adjusted according to your network setup and preferences.
 
-Please check envExample file to set `.env`
-
 ## Enable port for accepting connections (Ubuntu)
 
 ```bash
   sudo ufw allow 5503
 ```
+
+## Installing Redis
+
+To ensure Redis is installed and properly configured on your system, you can use the `install_redis.sh` script. Follow these steps for your operating system:
+
+### macOS and Ubuntu
+
+1. **Make the Script Executable:**
+
+   - Open a terminal and navigate to the directory containing the `install_redis.sh` script.
+   - Run the command `chmod +x install_redis.sh` to make the script executable.
+
+2. **Run the Script:**
+   - Execute the script by running `./install_redis.sh` in the terminal.
+   - If necessary, the script will ask for your password to grant permission for installation steps that require superuser access.
+
+The script will check if Redis is already installed on your system and proceed with the installation if it is not. It also ensures that Redis is set to start on boot.
+
+## Installing Mongodb
+
+To Install Mongodb on Ubuntu you can use the `install_mongodb.sh` script.
+
+### Ubuntu
+
+1. **Make the Script Executable:**
+
+   - Open a terminal and navigate to the directory containing the `install_mongodb.sh` script.
+   - Run the command `chmod +x install_mongodb.sh` to make the script executable.
+
+2. **Run the Script:**
+   - Execute the script by running `./install_mongodb.sh` in the terminal.
+   - If necessary, the script will ask for your password to grant permission for installation steps that require superuser access.
 
 ### Inode Connect Configuration
 
@@ -63,6 +93,13 @@ To get started with MinerPool, ensure that Python 3.6+ is installed on your syst
    - Update the MongoDB connection URL and database details in `database/mongodb.py` if necessary.
 6. **Set Up Environment Variables:**
    - Set up environment variables for configuration parameters.
+   - Open `.env` file in your project root directory you can use command `nano .env`
+   - Add the following lines to your `.env` file,`PRIVATEKEY=YOUR_POOL_WALLET_PRIVATEKEY` you check envExample for reference
+     ```
+      PRIVATEKEY=key
+      MINERPOOLWALLETADDRESS=pool_address
+      MINERPOOLREWARDWALLETADDRESS=reward_address
+     ```
 7. **Run MinerPool**: Start the MinerPool server by running the main script. For example, `python3 minerPool.py`.
 8. **Connect with Validators**: Start by running `python3 connect.py`.
 
