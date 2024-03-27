@@ -175,7 +175,7 @@ async def main():
     while True:
         try:
             if not test_api_connection(config.INODE_VALIDATOR_LIST):
-                logging.error("Failed to establish API connection. Exiting...")
+                logging.error("Failed to establish API connection. Retrying...")
                 await asyncio.sleep(30)
                 continue
 
