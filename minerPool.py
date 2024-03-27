@@ -72,7 +72,7 @@ if minerpool_private_key is None:
     print(
         "Minerpool PRIVATEKEY not found. Please check readme.md to set the PRIVATEKEY in the .env variable."
     )
-    exit(1)
+    exit(0)
 
 minerpool_wallet_address = os.getenv("MINERPOOLWALLETADDRESS")
 if minerpool_wallet_address is None:
@@ -86,7 +86,7 @@ if minerpool_reward_address is None:
     print(
         "Minerpool MINERPOOLREWARDWALLETADDRESS not found. Please check readme.md to set the MINERPOOLREWARDWALLETADDRESS in the .env variable."
     )
-    exit(1)
+    exit(2)
 
 
 last_request_times = {}
