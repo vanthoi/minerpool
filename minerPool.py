@@ -15,7 +15,7 @@ import logging
 from dotenv import load_dotenv
 
 active_connections = set()
-MAX_CONNECTIONS = 100
+MAX_CONNECTIONS = 500
 
 dotenv_path = ".env"
 load_dotenv(dotenv_path)
@@ -230,11 +230,11 @@ async def handle_client(websocket, path):
                         if success:
                             await websocket.send("SUCCESS: GRADIENT ACCEPTED")
                             await websocket.close()
-                            active_connections.remove(websocket)
+                            active_connections.discard(websocket)
                         else:
                             await websocket.send(f"ERROR: {message}")
                             await websocket.close()
-                            active_connections.remove(websocket)
+                            active_connections.discard(websocket)
                     else:
                         is_first_chunk = parsed_message.get("is_first_chunk", False)
                         save_file_chunk_in_job_folder(
@@ -253,7 +253,7 @@ async def handle_client(websocket, path):
                                 "ERROR: Cooldown period not yet passed. Please wait."
                             )
                             await websocket.close()
-                            active_connections.remove(websocket)
+                            active_connections.discard(websocket)
                             continue
 
                     # Update the last request time
@@ -263,7 +263,7 @@ async def handle_client(websocket, path):
                     if file is None or (file[0] is None and file[1] is None):
                         await websocket.send("ERROR: NO JOB FOUND!")
                         await websocket.close()
-                        active_connections.remove(websocket)
+                        active_connections.discard(websocket)
                     else:
                         await websocket.send(json.dumps(file))
 
@@ -273,16 +273,16 @@ async def handle_client(websocket, path):
                 else:
                     await websocket.send("ERROR: Unknown message type")
                     await websocket.close()
-                    active_connections.remove(websocket)
+                    active_connections.discard(websocket)
 
             except json.JSONDecodeError:
                 await websocket.send("ERROR: Invalid message format")
                 await websocket.close()
-                active_connections.remove(websocket)
+                active_connections.discard(websocket)
 
     except websockets.ConnectionClosed:
         logging.error("Client disconnected")
-        active_connections.remove(websocket)
+        active_connections.discard(websocket)
         # Handle disconnection
 
 

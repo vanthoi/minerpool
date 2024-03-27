@@ -6,17 +6,25 @@ MinerPool serves as a crucial intermediary between inodes and individual Ai-mine
 
 Before diving into the MinerPool setup, it's essential to configure the system correctly. The `config.py` file contains several critical settings that need to be adjusted according to your network setup and preferences.
 
+Please check envExample file to set `.env`
+
+## Enable port for accepting connections (Ubuntu)
+
+```bash
+  sudo ufw allow 5503
+```
+
 ### Inode Connect Configuration
 
-- `INODE_IP`: The IP address of the inode server. Default is `127.0.0.1`.
-- `INODE_PORT`: The port on which the inode server is running. Default is `65432`.
-- `BUFFER_SIZE`: The buffer size for network communication. Default is `1024`.
+- `INODE_IP`: The IP address of the inode server.
+- `INODE_PORT`: The port on which the inode server is running.
+- `BUFFER_SIZE`: The buffer size for network communication.
 
 ### MinerPool Configuration
 
-- `IP`: The IP address on which this MinerPool server will run. Default is `127.0.0.1`.
-- `PORT`: The port on which this MinerPool server will listen. Default is `5501`.
-- `CHECK_INTERVAL`: The interval (in seconds) for processing blocks. Default is `600`.
+- `IP`: The IP address on which this MinerPool server will run.
+- `PORT`: The port on which this MinerPool server will listen.
+- `CHECK_INTERVAL`: The interval (in seconds) for processing blocks.
 - `MINERPOOL_WALLET_ADDRESS`: The wallet address for this MinerPool.
 - `MINERPOOL_REWARD_WALLET_ADDRESS`: The wallet address for distributing MinerPool Fee. (18%)
 - `INODE_VALIDATOR_LIST`: URL to fetch the list of validators from the inode server.
@@ -24,8 +32,8 @@ Before diving into the MinerPool setup, it's essential to configure the system c
 - `PRIVATEKEY`: The private key for the MinerPool's wallet. This is crucial for transactions.
 - `API_URL`: The URL for API interactions, typically with the blockchain node.
 - `TRACK`: The starting block height for tracking blockchain transactions.
-- `FAST_API_URL`: The URL for the FastAPI server (if different from the default IP).
-- `FAST_API_PORT`: The port for the FastAPI server. Default is `8003`.
+- `FAST_API_URL`: The URL for the FastAPI server.
+- `FAST_API_PORT`: The port for the FastAPI server.
 
 ## Getting Started
 
@@ -46,7 +54,7 @@ To get started with MinerPool, ensure that Python 3.6+ is installed on your syst
 3. **Install Dependencies:**
 
    ```bash
-   pip install -r requirements.txt
+   pip3 install -r requirements.txt
    ```
 
 4. **Configure Settings**: Adjust the settings in `config.py` as per your setup.
@@ -55,8 +63,8 @@ To get started with MinerPool, ensure that Python 3.6+ is installed on your syst
    - Update the MongoDB connection URL and database details in `database/mongodb.py` if necessary.
 6. **Set Up Environment Variables:**
    - Set up environment variables for configuration parameters.
-7. **Run MinerPool**: Start the MinerPool server by running the main script. For example, `python minerPool.py`.
-8. **Connect with Validators**: Start by running `python connect.py`.
+7. **Run MinerPool**: Start the MinerPool server by running the main script. For example, `python3 minerPool.py`.
+8. **Connect with Validators**: Start by running `python3 connect.py`.
 
 ## API Endpoints
 
