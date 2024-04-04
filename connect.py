@@ -3,14 +3,16 @@ import websockets
 import threading
 import json
 import time
-from database.database import r
 import logging
 import utils.config as config
 import requests
 from datetime import datetime, timedelta
 import sys
+import queue
 from core.model import update_model_record, check_model_record
 from api.api_client import test_api_connection
+from database.database import test_redis_connection
+from utils.pick2 import pick_model_for_processing
 
 
 class MessageType:
@@ -24,8 +26,6 @@ logging.basicConfig(
 
 logging.getLogger("websockets").setLevel(logging.INFO)
 
-
-from utils.pick import pick_model_for_processing
 
 websockets_dict = {}
 
@@ -146,158 +146,144 @@ def fetch_validators(validators):
     return []
 
 
-def model_processing_thread(queue, interval=60):
-    logging.info("Model processing thread started")
+def fetch_peer_periodically(interval=600):
     while True:
-        model_data = pick_model_for_processing()
-        if model_data:
-            logging.debug(f"Model data received: {model_data}")
-            queue.put_nowait(model_data)
-            logging.debug(f"Model data queued: {model_data}")
+
+        vals = fetch_validators(config.INODE_VALIDATOR_LIST)
+        save_valid_peers_to_json(vals)
+
         time.sleep(interval)
 
 
-async def connect_to_server(uri, queue, wallet_address):
-    should_reconnect = True
-    while should_reconnect:
+async def send_message_to_validator(validator_info, message):
+    uri = validator_info
+    try:
+        async with websockets.connect(uri) as websocket:
+            print("Now connected with", uri)
+            await websocket.send(message)
+            response = await asyncio.wait_for(websocket.recv(), timeout=20)
+            await websocket.close()
+            return response
+    except asyncio.TimeoutError:
+        print(f"Timeout when sending message to {uri}")
+    except Exception as e:
+        print(f"Error when sending message to {uri}: {e}")
+    return None
+
+
+async def main():
+    while True:
         try:
-            async with websockets.connect(uri) as websocket:
-                websockets_dict[uri] = websocket
-                logging.info(f"Connected to {uri}")
+            if not test_api_connection(config.INODE_VALIDATOR_LIST):
+                logging.error("Failed to establish API connection. Retrying...")
+                await asyncio.sleep(30)
+                continue
 
-                async def send_messages():
-                    nonlocal should_reconnect
+            model = pick_model_for_processing()
+            if not model:
+                print("No model found for processing. Retrying...")
+                await asyncio.sleep(60)
+                continue
 
-                    while True:
-                        try:
-                            job_id = await asyncio.wait_for(queue.get(), timeout=30)
-                        except asyncio.TimeoutError:
-                            logging.warning(f"No job was received for {uri}")
-                            continue
+            peers = read_peers("peers.json")
+            if not peers:
+                print("No peers found or error reading peers. Retrying...")
+                await asyncio.sleep(60)
+                continue
 
-                        if job_id is None:
-                            should_reconnect = False
-                            break
+            temp_peers = [
+                (validator_id, validator_info)
+                for validator_id, validator_info in peers
+                if validator_id not in model["value"].get("validators", [])
+            ]
+            processed_validators = set()
 
-                        message = json.dumps(
-                            {
-                                "job_id": job_id,
-                                "miner_pool_wallet": config.MINERPOOL_WALLET_ADDRESS,
-                                "validator_wallet": "none",
-                                "job_details": "Job completed",
-                                "type": MessageType.VALIDATEMODEL,
-                            }
+            for validator_info in temp_peers[:]:
+                validator_id, validator_uri = validator_info
+                logging.info(
+                    f"Processing validator {validator_id} with URI {validator_uri}"
+                )
+                if validator_id in processed_validators:
+                    continue
+
+                message = json.dumps(
+                    {
+                        "job_id": model["key"],
+                        "miner_pool_wallet": config.MINERPOOL_WALLET_ADDRESS,
+                        "validator_wallet": "none",
+                        "job_details": "Job completed",
+                        "type": MessageType.VALIDATEMODEL,
+                    }
+                )
+
+                try:
+                    response = await send_message_to_validator(validator_uri, message)
+                    if response in [
+                        "Invalid message format",
+                        "Error processing message",
+                    ]:
+                        logging.error(
+                            f"Validator {validator_id} responded with error: {response}"
                         )
+                        continue
 
-                        ws = websockets_dict.get(uri)
-                        if ws and ws.open:
-                            try:
-                                if not check_model_record(job_id, wallet_address):
-                                    await ws.send(message)
-                                    logging.debug(f"Sent JSON message to {uri}")
-                            except Exception as e:
-                                logging.error(f"Error in sending to {uri}: {e}")
-                                websockets_dict.pop(uri, None)
-                                break
+                    parsed_message = json.loads(response)
+                    message_type = parsed_message.get("type")
+
+                    if message_type == MessageType.UPDATEMODEL:
+                        job_id = parsed_message.get("job_id")
+                        validator_wallet = parsed_message.get("validator_wallet")
+                        percentage = read_wallet(validator_wallet)
+
+                        update = update_model_record(
+                            job_id, percentage, validator_wallet
+                        )
+                        if update:
+                            print(
+                                f"Model updated successfully for validator {validator_wallet}."
+                            )
                         else:
-                            logging.error("WebSocket not found in websockets_dict")
-                            websockets_dict.pop(uri, None)
-                            break
+                            print(
+                                f"Failed to update model for validator {validator_wallet}."
+                            )
+                    processed_validators.add(validator_id)
+                    temp_peers.remove(validator_info)
 
-                async def receive_messages():
-                    while True:
-                        try:
-                            if websocket.open:
-                                incoming_message = await websocket.recv()
-                                logging.info(
-                                    f"Received message from server: {incoming_message}"
-                                )
-                                parsed_message = json.loads(incoming_message)
-                                message_type = parsed_message.get("type")
+                    temp_peers = [
+                        peer
+                        for peer in temp_peers
+                        if peer[0] not in processed_validators
+                    ]
 
-                                if message_type == MessageType.UPDATEMODEL:
-                                    job_id = parsed_message.get("job_id")
-                                    validator_wallet = parsed_message.get(
-                                        "validator_wallet"
-                                    )
-                                    percentage = read_wallet(validator_wallet)
+                except json.JSONDecodeError:
+                    logging.error(
+                        f"Failed to parse JSON response from validator {validator_id}."
+                    )
+                except Exception as e:
+                    logging.error(
+                        f"An error occurred while processing validator {validator_id}: {str(e)}"
+                    )
 
-                                    update = update_model_record(
-                                        job_id, percentage, validator_wallet
-                                    )
-                                    print(
-                                        "percentage",
-                                        percentage,
-                                        job_id,
-                                        validator_wallet,
-                                    )
+                if not temp_peers:
+                    break
 
-                        except websockets.ConnectionClosed:
-                            break
-
-                send_task = asyncio.create_task(send_messages())
-                receive_task = asyncio.create_task(receive_messages())
-                await asyncio.gather(send_task, receive_task)
+            await asyncio.sleep(120)
 
         except Exception as e:
-            logging.error(
-                f"connect_to_server Error with WebSocket connection to {uri}: {e}"
-            )
-            websockets_dict.pop(uri, None)
-
-        if should_reconnect:
-            await asyncio.sleep(10)
-        else:
-            logging.info("Exiting without reconnecting as job_id is None")
-
-
-def start_connection(uri, queue, wallet_address):
-    asyncio.new_event_loop().run_until_complete(
-        connect_to_server(uri, queue, wallet_address)
-    )
-
-
-def main():
-    try:
-        vals = fetch_validators(config.INODE_VALIDATOR_LIST)
-        save_valid_peers_to_json(vals)
-        peers = read_peers("peers.json")
-        message_queue = asyncio.Queue()
-
-        model_thread = threading.Thread(
-            target=model_processing_thread, daemon=True, args=(message_queue,)
-        )
-        model_thread.start()
-
-        connection_threads = []
-
-        for wallet_address, uri in peers:
-            thread = threading.Thread(
-                target=start_connection,
-                daemon=True,
-                args=(uri, message_queue, wallet_address),
-            )
-            thread.start()
-            connection_threads.append(thread)
-
-        model_thread.join()
-
-        for thread in connection_threads:
-            thread.join()
-
-    except KeyboardInterrupt:
-        logging.info("Shutting down...")
-        sys.exit(0)
-    except Exception as e:
-        logging.error(f"An error occurred: {e}")
-        sys.exit(1)
+            logging.error(f"An unexpected error occurred: {str(e)}")
+            await asyncio.sleep(190)
 
 
 if __name__ == "__main__":
-    if not test_api_connection(config.INODE_VALIDATOR_LIST):
-        logging.error("Failed to establish API connection. Exiting...")
-        sys.exit(3)
+    balance_thread = threading.Thread(target=fetch_peer_periodically, daemon=True)
+    balance_thread.start()
+    if not test_redis_connection():
+        logging.error("Failed to establish Redis connection. Exiting...")
+        sys.exit(0)
+
     try:
-        main()
-    except:
-        logging.info("Shutting down Connect.py due to KeyboardInterrupt.")
+        asyncio.run(main())
+    except Exception as e:
+        print("Unexpected error:", e)
+    except KeyboardInterrupt:
+        logging.info("Shutting down due to KeyboardInterrupt.")
