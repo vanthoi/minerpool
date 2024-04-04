@@ -34,6 +34,13 @@ if minerpool_reward_address is None:
     )
     exit(2)
 
+minerpool_track_block = os.getenv("TRACKBLOCK")
+if minerpool_track_block is None:
+    print(
+        "Minerpool TRACKBLOCK not found. Please check readme.md to set the TRACKBLOCK in the .env variable."
+    )
+    exit(2)
+
 # Inode Connect Configuration settings
 INODE_IP = "152.53.3.235"
 INODE_PORT = 65432
@@ -50,6 +57,6 @@ INODE_VALIDATOR_LIST = "http://152.53.3.235:8000/validators"
 CORE_URL = "https://api.upow.ai"
 PRIVATEKEY = env.PRIVATEKEY
 API_URL = "https://api.upow.ai"
-TRACK = 15616
+TRACK = env.TRACKBLOCK
 FAST_API_URL = "0.0.0.0"
 FAST_API_PORT = 8003
