@@ -202,7 +202,8 @@ def update_balance_periodically():
 
 async def handle_client(websocket, path):
     global active_connections
-    logging.info(f"active_connections {active_connections}")
+    num_active_connections = len(active_connections)
+    logging.info(f"active_connections {num_active_connections}")
     if len(active_connections) >= MAX_CONNECTIONS:
         await websocket.close(reason="ERROR: Connection limit reached")
         return
