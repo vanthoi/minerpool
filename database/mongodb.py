@@ -27,3 +27,4 @@ minerProcessedTransaction = db.minerProcessedTransaction
 minerTransactionsCollection = db.minerTransactionsCollection
 minerTransactionsPushed = db.minerTransactionsPushed
 minerBalanceUpdateData = db.minerBalanceUpdateData
+errorTransaction = db.errorTransaction

@@ -6,7 +6,11 @@ import json
 from datetime import datetime
 import utils.config as config
 import asyncio
-from database.mongodb import minerTransactionsCollection, minerTransactionsPushed
+from database.mongodb import (
+    minerTransactionsCollection,
+    minerTransactionsPushed,
+    errorTransaction,
+)
 from api.push import send_transaction
 from decimal import Decimal, ROUND_DOWN
 
@@ -53,6 +57,18 @@ async def sign_and_push_transactions(transactions):
                 else:
                     logging.error(
                         f"Transaction failed for wallet address {wallet_address}. No hash was returned."
+                    )
+                    errorTransaction.update_one(
+                        {"wallet_address": wallet_address},
+                        {
+                            "$push": {
+                                "transactions": {
+                                    "error": transaction_hash,
+                                    "amount": amounts,
+                                }
+                            }
+                        },
+                        upsert=True,
                     )
             except Exception as e:
                 logging.error(f"Caught exception: {str(e)}")
