@@ -55,6 +55,7 @@ async def sign_and_push_transactions(transactions):
                         f"Transaction failed for wallet address {wallet_address}. No hash was returned."
                     )
             except Exception as e:
+                logging.error(f"Caught exception: {str(e)}")
                 error_message = str(e)
                 if "You can spend max 255 inputs" in error_message:
                     num_inputs = int(error_message.split("not ")[-1])
@@ -71,9 +72,20 @@ async def sign_and_push_transactions(transactions):
 
                     # Remove the original transaction that exceeded the input limit
                     minerTransactionsCollection.delete_one({"id": id})
+                elif "URI Too Long for url:" in error_message:
+                    split_amount = float(amounts) / 2
+                    logging.info(
+                        f"Splitting transaction for {wallet_address} into 2 parts due to URI length limit."
+                    )
+                    for _ in range(2):
+                        add_transaction_to_batch(
+                            wallet_address, split_amount, f"split_{transaction_type}"
+                        )
+
+                    minerTransactionsCollection.delete_one({"id": id})
                 else:
                     logging.error(
-                        f"Error during transaction processing for {wallet_address}: {e}"
+                        f"Error during transaction processing for {wallet_address}: {error_message}"
                     )
 
         # Remove successfully processed transactions from the MongoDB collection

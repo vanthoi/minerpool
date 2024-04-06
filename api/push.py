@@ -25,13 +25,13 @@ async def push_tx(tx, wallet_utils: Utils):
         if res["ok"]:
             transaction_hash = sha256(tx.hex())
             logging.info(f"Transaction pushed. Transaction hash: {transaction_hash}")
-            return transaction_hash  # Return the hash here
+            return None, transaction_hash
         else:
             logging.error("\nTransaction has not been pushed")
-            return None  # Or handle this case as needed
+            return "Transaction not pushed", None
     except Exception as e:
         logging.error(f"Error during request to node: {e}")
-        return None  # Or handle this case as needed
+        return str(e), None
 
 
 async def send_transaction(private_key_hex, recipients, amounts, message=None):
@@ -53,4 +53,8 @@ async def send_transaction(private_key_hex, recipients, amounts, message=None):
         tx = await wallet_utils.create_transaction(
             private_key, receiver, amount, message_bytes
         )
-    return await push_tx(tx, wallet_utils)  # Ensure this returns the hash
+    error_message, transaction_hash = await push_tx(tx, wallet_utils)
+    if transaction_hash:
+        return transaction_hash
+    else:
+        raise Exception(error_message)
