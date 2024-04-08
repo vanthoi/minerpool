@@ -48,15 +48,15 @@ if minerpool_inode_ip is None:
     )
     exit(4)
 
-minerpool_inode_ip = os.getenv("INODE_VALIDATOR_LIST")
-if minerpool_inode_ip is None:
+minerpool_indoe_val_list = os.getenv("INODEVALIDATORLIST")
+if minerpool_indoe_val_list is None:
     print(
-        "Minerpool INODE_VALIDATOR_LIST not found. Please check readme.md to set the INODE_VALIDATOR_LIST in the .env variable."
+        "Minerpool INODEVALIDATORLIST not found. Please check readme.md to set the INODEVALIDATORLIST in the .env variable."
     )
     exit(5)
 
 # Inode Connect Configuration settings
-INODE_IP = env.INODE_IP
+INODE_IP = env.INODEIP
 INODE_PORT = 65432
 BUFFER_SIZE = 1024
 
