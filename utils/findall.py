@@ -3,7 +3,7 @@ import json
 import logging
 from tabulate import tabulate
 
-# Configure logging
+
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
@@ -24,10 +24,21 @@ def fetch_and_process_miners():
     total_balance = 0.0
     table_data = []
 
-    # For miners
+    # Process miners
     for wallet_address, miner_details in miners_list.items():
         try:
-            wallet_address = wallet_address.decode("utf-8")
+
+            wallet_address = (
+                wallet_address.decode("utf-8")
+                if isinstance(wallet_address, bytes)
+                else wallet_address
+            )
+
+            miner_details = (
+                miner_details.decode("utf-8")
+                if isinstance(miner_details, bytes)
+                else miner_details
+            )
             details = json.loads(miner_details)
 
             total_balance += details["balance"]
@@ -45,22 +56,31 @@ def fetch_and_process_miners():
                 f"Unexpected error processing miner details for wallet address {wallet_address}: {e}"
             )
 
-    # For pool_owner
+    # Process pool owner
     pool_owner_balance = 0.0
     if pool_owner_details:
         try:
             pool_owner = {
-                k.decode("utf-8"): v.decode("utf-8")
+                k.decode("utf-8") if isinstance(k, bytes) else k: (
+                    v.decode("utf-8") if isinstance(v, bytes) else v
+                )
                 for k, v in pool_owner_details.items()
             }
             pool_owner_balance = float(pool_owner.get("amount", 0))
             total_balance += pool_owner_balance
-            table_data.append([pool_owner["wallet_address"], pool_owner_balance])
+            table_data.append(
+                [
+                    "Pool Owner (" + pool_owner["wallet_address"] + ")",
+                    pool_owner_balance,
+                ]
+            )
         except Exception as e:
             logging.error(f"Error processing pool owner details: {e}")
 
     print(tabulate(table_data, headers=["Wallet Address", "Balance"], tablefmt="grid"))
-    logging.info(f"Total balance of all users: {total_balance - pool_owner_balance}")
+    logging.info(
+        f"Total balance of all users (excluding pool owner): {total_balance - pool_owner_balance}"
+    )
     logging.info(f"Pool owner balance: {pool_owner_balance}")
     logging.info(f"Combined total balance: {total_balance}")
 
