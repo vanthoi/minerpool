@@ -101,6 +101,8 @@ To get started with MinerPool, ensure that Python 3.6+ is installed on your syst
       MINERPOOLWALLETADDRESS=pool_address
       MINERPOOLREWARDWALLETADDRESS=reward_address
       TRACKBLOCK=10000
+      INODEIP=192.99.7.175
+      INODEVALIDATORLIST=http://192.99.7.175:8000/validators
      ```
 7. **Prepare Your Development Environment**
 
