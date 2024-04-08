@@ -55,6 +55,30 @@ if minerpool_indoe_val_list is None:
     )
     exit(5)
 
+
+minerpool_redishost = os.getenv("REDISHOST")
+if minerpool_redishost is None:
+    print(
+        "Minerpool REDISHOST not found. Please check readme.md to set the REDISHOST in the .env variable."
+    )
+    exit(6)
+
+
+minerpool_redisport = os.getenv("REDISPORT")
+if minerpool_redisport is None:
+    print(
+        "Minerpool REDISPORT not found. Please check readme.md to set the REDISPORT in the .env variable."
+    )
+    exit(7)
+
+
+minerpool_redisdb = os.getenv("REDISDB")
+if minerpool_redisdb is None:
+    print(
+        "Minerpool REDISDB not found. Please check readme.md to set the REDISDB in the .env variable."
+    )
+    exit(8)
+
 # Inode Connect Configuration settings
 INODE_IP = env.INODEIP
 INODE_PORT = 65432
@@ -74,3 +98,8 @@ API_URL = "https://api.upow.ai"
 TRACK = env.TRACKBLOCK
 FAST_API_URL = "0.0.0.0"
 FAST_API_PORT = 8003
+
+# redus database configurations
+REDIS_HOST = env.REDISHOST
+REDIS_PORT = env.REDISPORT
+REDIS_DB = env.REDISDB

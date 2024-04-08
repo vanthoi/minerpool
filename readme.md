@@ -103,6 +103,9 @@ To get started with MinerPool, ensure that Python 3.6+ is installed on your syst
       TRACKBLOCK=10000
       INODEIP=192.99.7.175
       INODEVALIDATORLIST=http://192.99.7.175:8000/validators
+      REDISHOST=localhost
+      REDISPORT=6379
+      REDISDB=0
      ```
 7. **Prepare Your Development Environment**
 
