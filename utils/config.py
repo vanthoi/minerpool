@@ -42,7 +42,7 @@ if minerpool_track_block is None:
     exit(2)
 
 # Inode Connect Configuration settings
-INODE_IP = "152.53.3.235"
+INODE_IP = "192.99.7.175"
 INODE_PORT = 65432
 BUFFER_SIZE = 1024
 
@@ -53,7 +53,7 @@ PORT = 5501
 CHECK_INTERVAL = 60
 MINERPOOL_WALLET_ADDRESS = env.MINERPOOLWALLETADDRESS
 MINERPOOL_REWARD_WALLET_ADDRESS = env.MINERPOOLREWARDWALLETADDRESS
-INODE_VALIDATOR_LIST = "http://152.53.3.235:8000/validators"
+INODE_VALIDATOR_LIST = "http://192.99.7.175:8000/validators"
 CORE_URL = "https://api.upow.ai"
 PRIVATEKEY = env.PRIVATEKEY
 API_URL = "https://api.upow.ai"
