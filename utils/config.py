@@ -39,10 +39,24 @@ if minerpool_track_block is None:
     print(
         "Minerpool TRACKBLOCK not found. Please check readme.md to set the TRACKBLOCK in the .env variable."
     )
-    exit(2)
+    exit(3)
+
+minerpool_inode_ip = os.getenv("INODEIP")
+if minerpool_inode_ip is None:
+    print(
+        "Minerpool INODEIP not found. Please check readme.md to set the INODEIP in the .env variable."
+    )
+    exit(4)
+
+minerpool_inode_ip = os.getenv("INODE_VALIDATOR_LIST")
+if minerpool_inode_ip is None:
+    print(
+        "Minerpool INODE_VALIDATOR_LIST not found. Please check readme.md to set the INODE_VALIDATOR_LIST in the .env variable."
+    )
+    exit(5)
 
 # Inode Connect Configuration settings
-INODE_IP = "192.99.7.175"
+INODE_IP = env.INODE_IP
 INODE_PORT = 65432
 BUFFER_SIZE = 1024
 
@@ -53,7 +67,7 @@ PORT = 5501
 CHECK_INTERVAL = 60
 MINERPOOL_WALLET_ADDRESS = env.MINERPOOLWALLETADDRESS
 MINERPOOL_REWARD_WALLET_ADDRESS = env.MINERPOOLREWARDWALLETADDRESS
-INODE_VALIDATOR_LIST = "http://192.99.7.175:8000/validators"
+INODE_VALIDATOR_LIST = env.INODEVALIDATORLIST
 CORE_URL = "https://api.upow.ai"
 PRIVATEKEY = env.PRIVATEKEY
 API_URL = "https://api.upow.ai"
