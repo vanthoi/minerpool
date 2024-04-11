@@ -15,7 +15,7 @@ import logging
 from dotenv import load_dotenv
 
 active_connections = set()
-MAX_CONNECTIONS = 500
+MAX_CONNECTIONS = 1500
 
 dotenv_path = ".env"
 load_dotenv(dotenv_path)
