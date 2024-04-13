@@ -296,6 +296,13 @@ async def handle_client(websocket, path):
         logging.error("Client disconnected")
         active_connections.discard(websocket)
         # Handle disconnection
+    finally:
+        await websocket.wait_closed()
+        # logging.info("WebSocket connection closed by the client.")
+        # logging.info(f"Before Client disconnected {len(active_connections)}")
+        logging.info("Client disconnected")
+        active_connections.discard(websocket)
+        # logging.info(f"After Client disconnected {len(active_connections)}")
 
 
 async def main():
