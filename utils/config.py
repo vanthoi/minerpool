@@ -79,6 +79,13 @@ if minerpool_redisdb is None:
     )
     exit(8)
 
+minerpool_mongodburi = os.getenv("MONGODB")
+if minerpool_mongodburi is None:
+    print(
+        "Minerpool MONGODB not found. Please check readme.md to set the MONGODB in the .env variable."
+    )
+    exit(8)
+
 # Inode Connect Configuration settings
 INODE_IP = env.INODEIP
 INODE_PORT = 65432
@@ -103,3 +110,6 @@ FAST_API_PORT = 8003
 REDIS_HOST = env.REDISHOST
 REDIS_PORT = env.REDISPORT
 REDIS_DB = env.REDISDB
+
+# Mongodb
+MONGO_DB = env.MONGODB

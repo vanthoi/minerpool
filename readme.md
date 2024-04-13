@@ -106,6 +106,7 @@ To get started with MinerPool, ensure that Python 3.6+ is installed on your syst
       REDISHOST=localhost
       REDISPORT=6379
       REDISDB=0
+      MONGODB=mongodb://localhost:27017/
      ```
 7. **Prepare Your Development Environment**
 
