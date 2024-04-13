@@ -9,6 +9,19 @@ logging.basicConfig(
 )
 
 
+def parse_datetime(time_str_or_int):
+    formats = ["%Y-%m-%dT%H:%M:%S.%f", "%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S"]
+    if isinstance(time_str_or_int, int):
+        # Assume it's a timestamp
+        return datetime.fromtimestamp(time_str_or_int)
+    for fmt in formats:
+        try:
+            return datetime.strptime(time_str_or_int, fmt)
+        except ValueError:
+            continue
+    raise ValueError(f"Time data '{time_str_or_int}' does not match any known format")
+
+
 def fetch_and_process_miners():
     try:
         if not test_redis_connection():
@@ -41,13 +54,7 @@ def fetch_and_process_miners():
             details = json.loads(miner_details)
 
             total_balance += details["balance"]
-            if isinstance(details["last_active_time"], int):
-                last_active_time = datetime.fromtimestamp(details["last_active_time"])
-            else:
-                last_active_time = datetime.strptime(
-                    details["last_active_time"], "%Y-%m-%dT%H:%M:%S.%f"
-                )
-
+            last_active_time = parse_datetime(details["last_active_time"])
             active_status = (
                 "Yes"
                 if (current_time - last_active_time) < timedelta(minutes=30)
@@ -65,10 +72,12 @@ def fetch_and_process_miners():
             logging.warning(
                 f"Missing key in data for wallet address {wallet_address}. Skipping..."
             )
-        except Exception as e:
+        except ValueError as e:
             logging.error(
-                f"Unexpected error processing miner details for wallet address {wallet_address}: {e}"
+                f"Error parsing date for wallet address {wallet_address}: {e}"
             )
+        except Exception as e:
+            logging.error(f"Unexpected error for wallet address {wallet_address}: {e}")
 
     pool_owner_balance = 0.0
     if pool_owner_details:
