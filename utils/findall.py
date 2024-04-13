@@ -2,7 +2,7 @@ from database.database import r, test_redis_connection
 import json
 import logging
 from tabulate import tabulate
-
+from datetime import datetime, timedelta
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -22,18 +22,17 @@ def fetch_and_process_miners():
         return
 
     total_balance = 0.0
+    active_user_count = 0
+    current_time = datetime.utcnow()
     table_data = []
 
-    # Process miners
     for wallet_address, miner_details in miners_list.items():
         try:
-
             wallet_address = (
                 wallet_address.decode("utf-8")
                 if isinstance(wallet_address, bytes)
                 else wallet_address
             )
-
             miner_details = (
                 miner_details.decode("utf-8")
                 if isinstance(miner_details, bytes)
@@ -42,21 +41,35 @@ def fetch_and_process_miners():
             details = json.loads(miner_details)
 
             total_balance += details["balance"]
-            table_data.append([wallet_address, details["balance"]])
+            if isinstance(details["last_active_time"], int):
+                last_active_time = datetime.fromtimestamp(details["last_active_time"])
+            else:
+                last_active_time = datetime.strptime(
+                    details["last_active_time"], "%Y-%m-%dT%H:%M:%S.%f"
+                )
+
+            active_status = (
+                "Yes"
+                if (current_time - last_active_time) < timedelta(minutes=30)
+                else "No"
+            )
+            if active_status == "Yes":
+                active_user_count += 1
+
+            table_data.append([wallet_address, details["balance"], active_status])
         except json.JSONDecodeError:
             logging.warning(
                 f"Error decoding JSON for wallet address {wallet_address}. Skipping..."
             )
         except KeyError:
             logging.warning(
-                f"Error: 'balance' key not found in data for wallet address {wallet_address}. Skipping..."
+                f"Missing key in data for wallet address {wallet_address}. Skipping..."
             )
         except Exception as e:
             logging.error(
                 f"Unexpected error processing miner details for wallet address {wallet_address}: {e}"
             )
 
-    # Process pool owner
     pool_owner_balance = 0.0
     if pool_owner_details:
         try:
@@ -72,17 +85,25 @@ def fetch_and_process_miners():
                 [
                     "Pool Owner (" + pool_owner["wallet_address"] + ")",
                     pool_owner_balance,
+                    "N/A",
                 ]
             )
         except Exception as e:
             logging.error(f"Error processing pool owner details: {e}")
 
-    print(tabulate(table_data, headers=["Wallet Address", "Balance"], tablefmt="grid"))
+    print(
+        tabulate(
+            table_data,
+            headers=["Wallet Address", "Balance", "Active in Last 30min"],
+            tablefmt="grid",
+        )
+    )
     logging.info(
         f"Total balance of all users (excluding pool owner): {total_balance - pool_owner_balance}"
     )
     logging.info(f"Pool owner balance: {pool_owner_balance}")
     logging.info(f"Combined total balance: {total_balance}")
+    logging.info(f"Total active users in the last 30 minutes: {active_user_count}")
 
 
 if __name__ == "__main__":
