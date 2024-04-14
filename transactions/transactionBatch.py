@@ -162,7 +162,7 @@ def process_all_transactions():
             unique_transactions[wallet_address] = transaction
 
         # Get the first 5 unique transactions based on the sorted order by timestamp
-        pending_transactions = list(unique_transactions.values())[:5]
+        pending_transactions = list(unique_transactions.values())[:15]
 
         if pending_transactions:
             # Since sign_and_push_transactions is an async function,
