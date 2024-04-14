@@ -7,3 +7,4 @@ INODEVALIDATORLIST=http://192.99.7.175:8000/validators
 REDISHOST=localhost
 REDISPORT=6379
 REDISDB=0
+MONGODB=mongodb://localhost:27017/

@@ -10,6 +10,8 @@ from database.mongodb import (
     minerTransactionsCollection,
     minerTransactionsPushed,
     errorTransaction,
+    catchTransaction,
+    pushHistory,
 )
 from api.push import send_transaction
 from decimal import Decimal, ROUND_DOWN
@@ -37,6 +39,19 @@ async def sign_and_push_transactions(transactions):
 
             message = ""
             try:
+                pushHistory.update_one(
+                    {"wallet_address": wallet_address},
+                    {
+                        "$push": {
+                            "transactions": {
+                                "transaction_type": transaction_type,
+                                "amount": amounts,
+                                "timestamp": datetime.utcnow(),
+                            }
+                        }
+                    },
+                    upsert=True,
+                )
                 transaction_hash = await send_transaction(
                     private_key, wallet_address, amounts, message
                 )
@@ -49,6 +64,7 @@ async def sign_and_push_transactions(transactions):
                                 "transactions": {
                                     "hash": transaction_hash,
                                     "amount": amounts,
+                                    "timestamp": datetime.utcnow(),
                                 }
                             }
                         },
@@ -65,6 +81,7 @@ async def sign_and_push_transactions(transactions):
                                 "transactions": {
                                     "error": transaction_hash,
                                     "amount": amounts,
+                                    "timestamp": datetime.utcnow(),
                                 }
                             }
                         },
@@ -102,6 +119,19 @@ async def sign_and_push_transactions(transactions):
                 else:
                     logging.error(
                         f"Error during transaction processing for {wallet_address}: {error_message}"
+                    )
+                    catchTransaction.update_one(
+                        {"wallet_address": wallet_address},
+                        {
+                            "$push": {
+                                "transactions": {
+                                    "error": error_message,
+                                    "amount": amounts,
+                                    "timestamp": datetime.utcnow(),
+                                }
+                            }
+                        },
+                        upsert=True,
                     )
 
         # Remove successfully processed transactions from the MongoDB collection
