@@ -116,6 +116,14 @@ async def sign_and_push_transactions(transactions):
                         )
 
                     minerTransactionsCollection.delete_one({"id": id})
+                elif "HTTPConnectionPool" in error_message:
+                    logging.info(
+                        f"Failed to connect with blockchain so adding transaction for reprocessing {wallet_address} ."
+                    )
+                    add_transaction_to_batch(
+                            wallet_address, amounts, f"retry_HTTPConnectionPool"
+                        )
+                    minerTransactionsCollection.delete_one({"id": id})
                 else:
                     logging.error(
                         f"Error during transaction processing for {wallet_address}: {error_message}"
