@@ -29,8 +29,8 @@ def load_model_from_pth(model_path):
         model.eval()
         return model
     except Exception as e:
-        print(f"Error loading model {e}")
-        raise
+        logging.error(f"Error loading model from {model_path}: {e}")
+        return None  # Return None if loading fails
 
 
 def get_pth_files(job, jobname):
@@ -156,12 +156,13 @@ def model_exe(job, job_folder_path):
 
     models = []
     for model_path in pth_files:
-        try:
-            model = load_model_from_pth(model_path)
+        model = load_model_from_pth(model_path)
+        if model is not None:  # Check if the model is loaded successfully
             models.append(model)
-        except Exception as e:
-            logging.warning(f"Error loading model from {model_path}: {e}")
-            continue  # Skip this file and continue with the next
+        else:
+            logging.warning(
+                f"Skipped loading corrupted or incompatible model from {model_path}"
+            )
 
     if not models:
         logging.info("No models loaded.")
