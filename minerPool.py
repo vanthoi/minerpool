@@ -136,22 +136,22 @@ async def poolowner_get_balance(request: Request):
     return {"balance": balance}
 
 
-# @app.post("/deduct_balance/")
-# @limiter.limit("10/minute")
-# async def deduct_balance(
-#     request: Request,
-#     deduct_request: DeductBalanceRequest,
-# ):
-#     result, response = deduct_balance_from_wallet(
-#         deduct_request.wallet_address, deduct_request.amount_to_deduct
-#     )
-#     if result is None:
-#         raise HTTPException(status_code=400, detail=response)
-#     else:
-#         add_transaction_to_batch(
-#             deduct_request.wallet_address, response, "deduct_balance"
-#         )
-#         return {"message": f"Amount deducted successfully: {response}"}
+@app.post("/deduct_balance/")
+@limiter.limit("1/minute")
+async def deduct_balance(
+    request: Request,
+    deduct_request: DeductBalanceRequest,
+):
+    result, response = deduct_balance_from_wallet(
+        deduct_request.wallet_address, deduct_request.amount_to_deduct
+    )
+    if result is None:
+        raise HTTPException(status_code=400, detail=response)
+    else:
+        add_transaction_to_batch(
+            deduct_request.wallet_address, response, "deduct_balance"
+        )
+        return {"message": f"Amount deducted successfully: {response}"}
 
 
 @app.post("/poolowner_deduct_balance/")
