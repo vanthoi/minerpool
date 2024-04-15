@@ -29,7 +29,7 @@ def load_model_from_pth(model_path):
         model.eval()
         return model
     except Exception as e:
-        logging.error(f"Error loading model from {model_path}: {e}")
+        logging.warning(f"Error loading model from {model_path}: {e}")
         return None  # Return None if loading fails
 
 
