@@ -13,6 +13,7 @@ from api.api_client import test_api_connection
 import os
 import logging
 from dotenv import load_dotenv
+from utils.userdata import check_active_users, check_wallet_active
 
 active_connections = set()
 MAX_CONNECTIONS = 1500
@@ -106,8 +107,27 @@ class DeductBalancePool(BaseModel):
     amount_to_deduct: float
 
 
+@app.get("/active-miners")
+@limiter.limit(config.RATE_LIMIT1)
+def get_active_users(request: Request):
+    try:
+        return {"active_miners": check_active_users()}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/check-active/{wallet_address}")
+@limiter.limit(config.RATE_LIMIT1)
+def get_wallet_active(request: Request, wallet_address: str):
+    try:
+        return check_wallet_active(wallet_address)
+    except Exception as e:
+        status_code = 400 if "not found" in str(e).lower() else 500
+        raise HTTPException(status_code=status_code, detail=str(e))
+
+
 @app.get("/get_balance/")
-@limiter.limit("10/minute")
+@limiter.limit(config.RATE_LIMIT1)
 async def get_balance(request: Request, wallet_address: str):
     if not wallet_address:
         raise HTTPException(status_code=400, detail="Wallet address must be provided")
@@ -123,7 +143,7 @@ async def get_balance(request: Request, wallet_address: str):
 
 
 @app.get("/get_balance_poolowner/")
-@limiter.limit("10/minute")
+@limiter.limit(config.RATE_LIMIT1)
 async def poolowner_get_balance(request: Request):
 
     balance = get_balance_poolowner()
@@ -137,7 +157,7 @@ async def poolowner_get_balance(request: Request):
 
 
 @app.post("/deduct_balance/")
-@limiter.limit("1/minute")
+@limiter.limit(config.RATE_LIMIT2)
 async def deduct_balance(
     request: Request,
     deduct_request: DeductBalanceRequest,
@@ -155,7 +175,7 @@ async def deduct_balance(
 
 
 @app.post("/poolowner_deduct_balance/")
-@limiter.limit("10/minute")
+@limiter.limit(config.RATE_LIMIT1)
 async def poolowner_deduct_balance(
     request: Request,
     deduct_request: DeductBalancePool,
@@ -171,7 +191,7 @@ async def poolowner_deduct_balance(
 
 
 @app.get("/latestwithdraws/")
-@limiter.limit("10/minute")
+@limiter.limit(config.RATE_LIMIT1)
 async def latest_withdraws(request: Request, wallet_address: str):
     if not wallet_address:
         raise HTTPException(status_code=400, detail="Wallet address must be provided")

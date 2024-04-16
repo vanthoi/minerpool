@@ -84,7 +84,21 @@ if minerpool_mongodburi is None:
     print(
         "Minerpool MONGODB not found. Please check readme.md to set the MONGODB in the .env variable."
     )
-    exit(8)
+    exit(9)
+
+minerpool_ratelimit1 = os.getenv("RATELIMIT1")
+if minerpool_ratelimit1 is None:
+    print(
+        "Minerpool RATELIMIT1 not found. Please check readme.md to set the RATELIMIT1 in the .env variable."
+    )
+    exit(10)
+
+minerpool_ratelimit2 = os.getenv("RATELIMIT2")
+if minerpool_ratelimit2 is None:
+    print(
+        "Minerpool RATELIMIT2 not found. Please check readme.md to set the RATELIMIT2 in the .env variable."
+    )
+    exit(11)
 
 # Inode Connect Configuration settings
 INODE_IP = env.INODEIP
@@ -105,6 +119,8 @@ API_URL = "https://api.upow.ai"
 TRACK = env.TRACKBLOCK
 FAST_API_URL = "0.0.0.0"
 FAST_API_PORT = 8003
+RATE_LIMIT1 = env.RATELIMIT1
+RATE_LIMIT2 = env.RATELIMIT2
 
 # redus database configurations
 REDIS_HOST = env.REDISHOST

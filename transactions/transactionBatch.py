@@ -15,6 +15,7 @@ from database.mongodb import (
 )
 from api.push import send_transaction
 from decimal import Decimal, ROUND_DOWN
+from api.api_client import test_api_connection
 
 
 logging.basicConfig(
@@ -121,8 +122,8 @@ async def sign_and_push_transactions(transactions):
                         f"Failed to connect with blockchain so adding transaction for reprocessing {wallet_address} ."
                     )
                     add_transaction_to_batch(
-                            wallet_address, amounts, f"retry_HTTPConnectionPool"
-                        )
+                        wallet_address, amounts, f"retry_HTTPConnectionPool"
+                    )
                     minerTransactionsCollection.delete_one({"id": id})
                 else:
                     logging.error(
@@ -151,6 +152,9 @@ async def sign_and_push_transactions(transactions):
 
 
 def process_all_transactions():
+    if not test_api_connection(config.API_URL):
+        logging.warning("Blockchain may be down, no transactions pushed.")
+        return
     try:
         # Fetch all transactions and sort them by timestamp
         all_transactions = list(minerTransactionsCollection.find().sort("timestamp", 1))
