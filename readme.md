@@ -108,8 +108,8 @@ To get started with MinerPool, ensure that Python 3.6+ is installed on your syst
       REDISDB=0
       MONGODB=mongodb://localhost:27017/
       MONGODB=mongodb://localhost:27017/
-      RATELIMIT1=10
-      RATELIMIT2=1
+      RATELIMIT1=10/minute
+      RATELIMIT2=1/minute
      ```
 7. **Prepare Your Development Environment**
 
