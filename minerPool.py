@@ -14,6 +14,7 @@ import os
 import logging
 from dotenv import load_dotenv
 from utils.userdata import check_active_users, check_wallet_active
+import base58
 
 active_connections = set()
 MAX_CONNECTIONS = 1500
@@ -231,6 +232,27 @@ def update_balance_periodically():
         print(f"Error in update_balance_periodically: {e}")
 
 
+def is_valid_address(address: str) -> bool:
+    try:
+        _ = bytes.fromhex(address)
+        return len(address) == 128
+    except ValueError:
+        try:
+            decoded_bytes = base58.b58decode(address)
+            if len(decoded_bytes) != 33:
+                return False
+            specifier = decoded_bytes[0]
+            if specifier not in [42, 43]:
+                return False
+            return True
+        except ValueError:
+
+            return False
+    except Exception as e:
+        print(f"Error validating address: {e}")
+        return False
+
+
 async def handle_client(websocket, path):
     global active_connections
     num_active_connections = len(active_connections)
@@ -244,6 +266,13 @@ async def handle_client(websocket, path):
             try:
                 parsed_message = json.loads(message)
                 message_type = parsed_message.get("type")
+                wallet_address = parsed_message.get("wallet_address")
+
+                if wallet_address is not None and not is_valid_address(wallet_address):
+                    await websocket.send("ERROR: Invalid wallet address")
+                    await websocket.close()
+                    active_connections.discard(websocket)
+                    continue
 
                 if message_type == "gradient":
                     folder_name = parsed_message.get("folder_name")

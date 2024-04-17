@@ -45,6 +45,7 @@ async def sign_and_push_transactions(transactions):
                     {
                         "$push": {
                             "transactions": {
+                                "id": id,
                                 "transaction_type": transaction_type,
                                 "amount": amounts,
                                 "timestamp": datetime.utcnow(),
@@ -63,9 +64,11 @@ async def sign_and_push_transactions(transactions):
                         {
                             "$push": {
                                 "transactions": {
+                                    "id": id,
                                     "hash": transaction_hash,
                                     "amount": amounts,
                                     "timestamp": datetime.utcnow(),
+                                    "transaction_type": transaction_type,
                                 }
                             }
                         },
@@ -80,6 +83,7 @@ async def sign_and_push_transactions(transactions):
                         {
                             "$push": {
                                 "transactions": {
+                                    "id": id,
                                     "error": transaction_hash,
                                     "amount": amounts,
                                     "timestamp": datetime.utcnow(),
@@ -101,7 +105,9 @@ async def sign_and_push_transactions(transactions):
                     )
                     for _ in range(num_splits):
                         add_transaction_to_batch(
-                            wallet_address, split_amount, f"split_{transaction_type}"
+                            wallet_address,
+                            split_amount,
+                            f"utxos_split_{transaction_type}",
                         )
 
                     # Remove the original transaction that exceeded the input limit
@@ -113,11 +119,16 @@ async def sign_and_push_transactions(transactions):
                     )
                     for _ in range(2):
                         add_transaction_to_batch(
-                            wallet_address, split_amount, f"split_{transaction_type}"
+                            wallet_address,
+                            split_amount,
+                            f"url_split_{transaction_type}",
                         )
 
                     minerTransactionsCollection.delete_one({"id": id})
-                elif "HTTPConnectionPool" in error_message:
+                elif (
+                    "HTTPConnectionPool" in error_message
+                    or "HTTPSConnectionPool" in error_message
+                ):
                     logging.info(
                         f"Failed to connect with blockchain so adding transaction for reprocessing {wallet_address} ."
                     )
@@ -134,6 +145,7 @@ async def sign_and_push_transactions(transactions):
                         {
                             "$push": {
                                 "transactions": {
+                                    "id": id,
                                     "error": error_message,
                                     "amount": amounts,
                                     "timestamp": datetime.utcnow(),
