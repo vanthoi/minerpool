@@ -79,6 +79,14 @@ if minerpool_redisdb is None:
     )
     exit(8)
 
+
+minerpool_redisauth = os.getenv("REDISAUTH")
+if minerpool_redisauth is None:
+    print(
+        "Minerpool REDISAUTH not found. Please check readme.md to set the REDISAUTH in the .env variable."
+    )
+    exit(12)
+
 minerpool_mongodburi = os.getenv("MONGODB")
 if minerpool_mongodburi is None:
     print(
@@ -126,6 +134,7 @@ RATE_LIMIT2 = env.RATELIMIT2
 REDIS_HOST = env.REDISHOST
 REDIS_PORT = env.REDISPORT
 REDIS_DB = env.REDISDB
+REDIS_AUTH = env.REDISAUTH
 
 # Mongodb
 MONGO_DB = env.MONGODB

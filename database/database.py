@@ -5,6 +5,7 @@ r = redis.Redis(
     host=config.REDIS_HOST,
     port=config.REDIS_PORT,
     db=config.REDIS_DB,
+    password=config.REDIS_AUTH,
     decode_responses=True,
 )
 
@@ -15,6 +16,7 @@ def test_redis_connection():
             host=config.REDIS_HOST,
             port=config.REDIS_PORT,
             db=config.REDIS_DB,
+            password=config.REDIS_AUTH,
             decode_responses=True,
         )
         # Ping the Redis server
