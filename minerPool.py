@@ -15,6 +15,7 @@ import logging
 from dotenv import load_dotenv
 from utils.userdata import check_active_users, check_wallet_active
 import base58
+from transactions.updateGradient import clean_job_folder
 
 active_connections = set()
 MAX_CONNECTIONS = 1500
@@ -355,6 +356,7 @@ async def handle_client(websocket, path):
 
 
 async def main():
+    clean_job_folder()
     logging.info("Requesting Job in MinerPool")
     # create_db("History")
     balance_thread = threading.Thread(target=update_balance_periodically, daemon=True)

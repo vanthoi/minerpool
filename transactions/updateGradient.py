@@ -3,6 +3,7 @@ import json
 import datetime
 import os
 import logging
+import redis
 from database.database import r
 from mining.updateMiner import update_miner
 from core.model import load_model_from_pth, model_exe
@@ -181,3 +182,35 @@ def update_gradient(jobname, hash_value, new_gradient, wallet_address, file_name
     except Exception as e:
         delete_file_on_error(jobname, file_name)
         return False, f"update_gradient An error occurred: {e}"
+
+
+def clean_job_folder():
+    try:
+        active_mining_value = r.get("active_mining")
+        if not active_mining_value:
+            print("No active mining job specified. Aborting clean-up.")
+            return
+
+        job_root_path = os.path.join(".", "Job")
+
+        for folder_name in os.listdir(job_root_path):
+            folder_path = os.path.join(job_root_path, folder_name)
+
+            if folder_name == active_mining_value:
+                continue
+
+            if os.path.isdir(folder_path):
+                for root, dirs, files in os.walk(folder_path, topdown=False):
+                    for name in files:
+                        os.remove(os.path.join(root, name))
+                    for name in dirs:
+                        os.rmdir(os.path.join(root, name))
+                os.rmdir(folder_path)
+
+        print(f"Cleaned up all folders except '{active_mining_value}'.")
+    except redis.exceptions.RedisError as re:
+        print(f"Redis error: {re}")
+    except FileNotFoundError as fnf:
+        print(f"File not found error: {fnf}")
+    except Exception as e:
+        print(f"Unexpected error: {e}")
