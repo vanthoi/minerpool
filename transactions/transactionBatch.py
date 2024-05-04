@@ -154,6 +154,10 @@ async def sign_and_push_transactions(transactions):
                         },
                         upsert=True,
                     )
+                    add_transaction_to_batch(
+                        wallet_address, amounts, f"CatchError_{id}"
+                    )
+                    minerTransactionsCollection.delete_one({"id": id})
 
         # Remove successfully processed transactions from the MongoDB collection
         if transactions:
