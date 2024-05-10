@@ -121,6 +121,19 @@ async def sign_and_push_transactions(transactions):
                         )
 
                     minerTransactionsCollection.delete_one({"id": id})
+                elif "Request-URI Too Large for url:" in error_message:
+                    split_amount = float(amounts) / 2
+                    logging.info(
+                        f"Splitting transaction for {wallet_address} into 2 parts due to URI length limit."
+                    )
+                    for _ in range(2):
+                        add_transaction_to_batch(
+                            wallet_address,
+                            split_amount,
+                            f"Request-URI{transaction_type}",
+                        )
+
+                    minerTransactionsCollection.delete_one({"id": id})
                 elif (
                     "HTTPConnectionPool" in error_message
                     or "HTTPSConnectionPool" in error_message
