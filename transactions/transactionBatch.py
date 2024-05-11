@@ -32,11 +32,7 @@ async def sign_and_push_transactions(transactions):
             id = transaction.get("id")
             # print("id", id)
             new_balance = transaction.get("new_balance")
-            amounts = str(
-                Decimal(new_balance).quantize(
-                    Decimal("0.00000001"), rounding=ROUND_DOWN
-                )
-            )
+            amounts = "{:.8f}".format(float(new_balance))
 
             message = ""
             try:
@@ -122,6 +118,19 @@ async def sign_and_push_transactions(transactions):
                             wallet_address,
                             split_amount,
                             f"url_split_{transaction_type}",
+                        )
+
+                    minerTransactionsCollection.delete_one({"id": id})
+                elif "Request-URI Too Large for url:" in error_message:
+                    split_amount = float(amounts) / 2
+                    logging.info(
+                        f"Splitting transaction for {wallet_address} into 2 parts due to URI length limit."
+                    )
+                    for _ in range(2):
+                        add_transaction_to_batch(
+                            wallet_address,
+                            split_amount,
+                            f"Request-URI{transaction_type}",
                         )
 
                     minerTransactionsCollection.delete_one({"id": id})
